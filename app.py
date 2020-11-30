@@ -1,13 +1,24 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
+import pymysql
+USER = 'root'
+PASSWORD = 'karadeniz'
+DATABASE = 'lecture_schedule'
+# connection_name is of the format `project:region:your-cloudsql-instance`
+CONNECTION_NAME = 'halogen-pier-297117:us-central1:smartcampus'
+
+SQLALCHEMY_DATABASE_URI = (
+    'mysql+pymysql://{user}:{password}@localhost/{database}'
+    '?unix_socket=/cloudsql/{connection_name}').format(
+        user=USER, password=PASSWORD,
+        database=DATABASE, connection_name=CONNECTION_NAME)
 
 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/lecture_schedule?unix_socket=/Applications/MAMP/tmp/mysql/mysql.sock'
-
+app.config['SQLALCHEMY_DATABASE_URI'] =  SQLALCHEMY_DATABASE_URI
 
 
 
@@ -124,7 +135,6 @@ class Sensors(db.Model):
 
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
-
     user = student.query.get("041501008")
 
     return user.name
@@ -158,4 +168,4 @@ def home(id):
     return jsonify(data)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
