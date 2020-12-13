@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 
-
+##sonuççç
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -152,11 +152,11 @@ def home(id):
     return {
             'Department': departmentName.name,
             'Faculty': facultyName.name,
-            'Student Name': studentName.name,
+            'StudentName': studentName.name,
             'Instructor': instructorName,
-            'Course Code': courseCode,
-            'Course Credit': courseCredit,
-            'Course Name': courseName
+            'CourseCode': courseCode,
+            'CourseCredit': courseCredit,
+            'CourseName': courseName
         }
 
 if __name__ == '__main__':
