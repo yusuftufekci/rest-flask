@@ -132,7 +132,6 @@ def welcome():
 def home(id):
 
     studentName = Student.query.filter_by(studentNumber=id).first()
-    department = Department.query.filter_by(ID="1").first()
     if studentName == None:
         return "There is no student with this id"
 
@@ -148,10 +147,17 @@ def home(id):
         courseCode=courseSS.courseCode
         courseCredit=courseSS.credit
         courseName=courseSS.name
-        data = [departmentName.name, facultyName.name, studentName.name, instructorName, courseCode, courseCredit,
-                courseName]
 
-    return jsonify(data)
+
+    return {
+            'Department': departmentName.name,
+            'Faculty': facultyName.name,
+            'Student Name': studentName.name,
+            'Instructor': instructorName,
+            'Course Code': courseCode,
+            'Course Credit': courseCredit,
+            'Course Name': courseName
+        }
 
 if __name__ == '__main__':
     app.run()
