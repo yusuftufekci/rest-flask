@@ -147,9 +147,7 @@ def home(id):
         courseCode=courseSS.courseCode
         courseCredit=courseSS.credit
         courseName=courseSS.name
-
-
-    return {
+        d = {
             'Department': departmentName.name,
             'Faculty': facultyName.name,
             'StudentName': studentName.name,
@@ -158,6 +156,8 @@ def home(id):
             'CourseCredit': courseCredit,
             'CourseName': courseName
         }
+
+    return jsonify(d)
 
 if __name__ == '__main__':
     app.run()
