@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
+import json
 
 ##sonuççç
 
@@ -147,6 +148,10 @@ def home(id):
         courseCode=courseSS.courseCode
         courseCredit=courseSS.credit
         courseName=courseSS.name
+
+
+
+
         d = [{
             'Department': departmentName.name,
             'Faculty': facultyName.name,
@@ -156,8 +161,9 @@ def home(id):
             'CourseCredit': courseCredit,
             'CourseName': courseName
         }]
+        d2 = json.dumps(d)
 
-    return jsonify(d)
+    return d2
 
 if __name__ == '__main__':
     app.run()
