@@ -2,12 +2,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 import json
+from flask_cors import CORS, cross_origin
 
 ##sonuççç
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
+cors = CORS(app)
 
 
 
@@ -120,7 +122,7 @@ class Sensors(db.Model):
         self.humidity = humidity
         self.date = date
 
-
+@cross_origin()
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     user = Student.query.get("041501008")
