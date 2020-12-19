@@ -3,12 +3,19 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 import json
 from flask_cors import CORS, cross_origin
+from flask import Blueprint, render_template, redirect, url_for, request
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+
+
+
 
 ##sonuççç
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
+app.secret_key = 'super secret key'
 cors = CORS(app)
 
 
@@ -121,6 +128,12 @@ class Sensors(db.Model):
         self.Tempature = Tempature
         self.humidity = humidity
         self.date = date
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Unicode)
+    password = db.Column(db.Unicode)
+    email = db.Column(db.Unicode)
+
 
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
@@ -128,8 +141,50 @@ def welcome():
     user = Student.query.get("041501008")
     return user.name
 
+@app.route('/register', methods=['POST'])
+def signup_post():
+    data = request.get_json(force=True)
+
+    username = data["username"]
+    password = data["password"]
+    email = data["email"]
+    id = data["id"]
 
 
+
+
+    user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
+
+    if user: # if a user is found, we want to redirect back to signup page so user can try again
+        return "Kullanıcı mevcut, tekrar dene"
+
+    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
+
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
+
+    return "yksakdas"
+
+@app.route('/login', methods=['POST'])
+def login_post():
+
+    data = request.get_json(force=True)
+    username = data["username"]
+    password = data["password"]
+
+    user = User.query.filter_by(name=username).first()
+
+    # check if the user actually exists
+    # take the user-supplied password, hash it, and compare it to the hashed password in the database
+    if not user or not check_password_hash(user.password, password):
+        return "giriş başarısız"
+        # if the user doesn't exist or password is wrong, reload the page
+
+    # if the above check passes, then we know the user has the right credentials
+
+    return "Giriş başarılı"
 
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
@@ -150,7 +205,6 @@ def home(id):
         courseCode=courseSS.courseCode
         courseCredit=courseSS.credit
         courseName=courseSS.name
-
 
 
 
