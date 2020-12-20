@@ -6,6 +6,7 @@ from flask_cors import CORS, cross_origin
 from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
+import random
 
 
 
@@ -133,14 +134,16 @@ class User(db.Model):
     name = db.Column(db.Unicode)
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
-
+#1
+#a
+#sha256$nLp9wKMo$b53f99e8232acf79225b4298b15bdfd503201513582c79c209d65c95cf8738b7
+#a
 
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
-    user = Student.query.get("041501008")
-    return user.name
-
+    user = User.query.get(1)
+    return str(user.email)
 @app.route('/register', methods=['POST'])
 def signup_post():
     data = request.get_json(force=True)
@@ -148,24 +151,24 @@ def signup_post():
     username = data["username"]
     password = data["password"]
     email = data["email"]
-    id = data["id"]
+    id = random.randrange(1,600000)
 
+    idUser = User.query.filter_by(id=id).first()
+    if idUser is None:
 
+        user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
 
+        if user: # if a user is found, we want to redirect back to signup page so user can try again
+            return "kullanici mevcut, tekrar dene"
 
-    user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
-        return "kullanici mevcut, tekrar dene"
+        # add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
-
-    # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
-
-    return "yksakdas"
+        return "kullanici Olusturuldu"
 
 @app.route('/login', methods=['POST'])
 def login_post():
