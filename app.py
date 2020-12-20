@@ -134,16 +134,16 @@ class User(db.Model):
     name = db.Column(db.Unicode)
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
-#1
-#a
-#sha256$nLp9wKMo$b53f99e8232acf79225b4298b15bdfd503201513582c79c209d65c95cf8738b7
-#a
 
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
-    user = User.query.get(1)
-    return str(user.email)
+
+    studentName = User.query.filter_by(name="yusuf").first()
+
+    return str(studentName.password)
+
+
 @app.route('/register', methods=['POST'])
 def signup_post():
     data = request.get_json(force=True)
@@ -151,24 +151,25 @@ def signup_post():
     username = data["username"]
     password = data["password"]
     email = data["email"]
-    id = random.randrange(1,600000)
+    id = data["id"]
+    #id = random.randrange(1,600000)
 
-    idUser = User.query.filter_by(id=id).first()
-    if idUser is None:
+    #idUser = User.query.filter_by(id=id).first()
+    #if idUser is None:
 
-        user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
+    user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
 
-        if user: # if a user is found, we want to redirect back to signup page so user can try again
-            return "kullanici mevcut, tekrar dene"
+    if user: # if a user is found, we want to redirect back to signup page so user can try again
+        return "kullanici mevcut, tekrar dene"
 
-        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
+    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
 
-        # add the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
 
-        return "kullanici Olusturuldu"
+    return "kullanici Olusturuldu"
 
 @app.route('/login', methods=['POST'])
 def login_post():
