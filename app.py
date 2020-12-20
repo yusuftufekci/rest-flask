@@ -169,6 +169,8 @@ def signup_post():
         db.session.commit()
 
         return "Ok message"
+    else:
+        return signup_post()
 
 @app.route('/login', methods=['POST'])
 def login_post():
