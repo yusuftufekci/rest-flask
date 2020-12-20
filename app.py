@@ -151,25 +151,24 @@ def signup_post():
     username = data["username"]
     password = data["password"]
     email = data["email"]
-    id = data["id"]
-    #id = random.randrange(1,600000)
+    id = random.randrange(1,600000)
 
-    #idUser = User.query.filter_by(id=id).first()
-    #if idUser is None:
+    idUser = User.query.filter_by(id=id).first()
+    if idUser is None:
 
-    user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
+        user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
-        return "kullanici mevcut, tekrar dene"
+        if user: # if a user is found, we want to redirect back to signup page so user can try again
+            return "Hata mesaji", 400
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
+        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+        new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
 
-    # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
+        # add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
 
-    return "kullanici Olusturuldu"
+        return "Ok message"
 
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -209,8 +208,6 @@ def home(id):
         courseCode=courseSS.courseCode
         courseCredit=courseSS.credit
         courseName=courseSS.name
-
-
 
         d = [{
             'Department': departmentName.name,
