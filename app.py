@@ -129,12 +129,13 @@ class Sensors(db.Model):
         self.Tempature = Tempature
         self.humidity = humidity
         self.date = date
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
-
+    role = db.Column(db.Unicode)
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
@@ -151,6 +152,7 @@ def signup_post():
     username = data["username"]
     password = data["password"]
     email = data["email"]
+    role = data["role"]
     id = random.randrange(1,600000)
 
     idUser = User.query.filter_by(id=id).first()
@@ -162,7 +164,7 @@ def signup_post():
             return "Hata mesaji", 400
 
         # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(id=id, name=username, email=email, password=generate_password_hash(password, method='sha256'))
+        new_user = User(id=id, name=username, email=email,role=role,  password=generate_password_hash(password, method='sha256'))
 
         # add the new user to the database
         db.session.add(new_user)
@@ -179,8 +181,9 @@ def login_post():
     username = data["username"]
     password = data["password"]
 
-    user = User.query.filter_by(name=username).first()
 
+    user = User.query.filter_by(name=username).first()
+    role = user.role
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if not user or not check_password_hash(user.password, password):
@@ -189,7 +192,7 @@ def login_post():
 
     # if the above check passes, then we know the user has the right credentials
 
-    return "giris basarili"
+    return "giris basarili",role
 
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
