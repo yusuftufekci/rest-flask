@@ -145,6 +145,8 @@ def welcome():
     return str(studentName.password)
 
 
+
+
 @app.route('/register', methods=['POST'])
 def signup_post():
     data = request.get_json(force=True)
@@ -183,12 +185,12 @@ def login_post():
 
 
     user = User.query.filter_by(name=username).first()
-    role = user.role
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if not user or not check_password_hash(user.password, password):
         return "giris basarisiz"
         # if the user doesn't exist or password is wrong, reload the page
+    role = user.role
 
     # if the above check passes, then we know the user has the right credentials
 
