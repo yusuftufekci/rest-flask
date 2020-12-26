@@ -7,7 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 import random
-
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
 
 ##sonuççç
@@ -17,6 +18,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
 app.secret_key = 'super secret key'
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+jwt = JWTManager(app)
 cors = CORS(app)
 
 
@@ -144,9 +146,10 @@ class User(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
 
-    studentName = Student.query.filter_by(studentNumber="041501008").first()
+    studentName = Student.query.filter_by(departmentID="1").all()
 
-    return str(studentName.mail)
+
+    return str(studentName[1].mail)
 
 
 
@@ -167,12 +170,25 @@ def register():
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
     new_user = User(email=email,role=role,  password=generate_password_hash(password, method='sha256'))
-
+    access_token = create_access_token(identity=data['username'])
+    refresh_token = create_refresh_token(identity=data['username'])
     # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
 
-    return "Ok message"
+    d = [{
+        'status': "ok message",
+        'access_token': access_token,
+        'refresh_token': refresh_token
+
+    }]
+
+    d2 = json.dumps(d)
+
+    
+
+
+    return d2
 
 
 @app.route('/login', methods=['POST'])
@@ -189,20 +205,30 @@ def login_post():
     if not user or not check_password_hash(user.password, password):
         return "giris basarisiz"
 
-
+    access_token = create_access_token(identity=data['username'])
+    refresh_token = create_refresh_token(identity=data['username'])
         # if the user doesn't exist or password is wrong, reload the page
     role = user.role
 
-    # if the above check passes, then we know the user has the right credentials
+    d = [{
+        'role':role,
+        'access_token':access_token,
+        'refresh_token':refresh_token
 
-    return "giris basarili",role
+    }]
+
+    d2 = json.dumps(d)
+
+
+    # if the above check passes, then we know the user has the right credentials
+    return d2
 
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
 
     studentName = Student.query.filter_by(studentNumber=id).first()
     if studentName == None:
-        return "There is no student with this id"
+        return 400
 
     else:
         departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
@@ -240,7 +266,7 @@ def get_lectures(email):
     studentName = Student.query.filter_by(mail=email).first()
     studentID = studentName.studentNumber
     if studentName == None:
-        return "There is no student with this email"
+        return 400
 
     else:
         departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
