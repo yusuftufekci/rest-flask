@@ -33,9 +33,11 @@ class Student(db.Model):
     name = db.Column( db.Unicode)
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     enrollments = db.relationship("Enrollment")
-    def __init__(self, name, departmentID):
+    mail = db.Column(db.Unicode)
+    def __init__(self, name, departmentID,mail):
         self.name = name
         self.departmentID = departmentID
+        self.mail = mail
 
 
 class Classroom(db.Model):
@@ -103,10 +105,12 @@ class Instructor(db.Model):
     name = db.Column(db.Unicode)
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     sections = db.relationship('Section', backref='Instructor')
+    mail = db.Column(db.Unicode)
 
-    def __init__(self, departmentID, name):
+    def __init__(self, departmentID, name, mail):
         self.departmentID = departmentID
         self.name = name
+        self.mail = mail
 
 class Section(db.Model):
     ID = db.Column(db.Integer, primary_key=True)
@@ -143,9 +147,9 @@ class User(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
 
-    studentName = User.query.filter_by(id="1").first()
+    studentName = Student.query.filter_by(studentNumber="041501008").first()
 
-    return str(studentName.email)
+    return str(studentName.mail)
 
 
 
@@ -201,7 +205,7 @@ def login_post():
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
 
-    studentName = Student.query.filter_by(studentNumber=id).first()
+    studentName = Student.query.filter_by(mail=id).first()
     if studentName == None:
         return "There is no student with this id"
 
@@ -235,17 +239,18 @@ def home(id):
 
     return d2
 
-@app.route('/api/users/<email>', methods=['GET', 'POST'])
+@app.route('/api/user/<email>', methods=['GET', 'POST'])
 def get_lectures(email):
 
-    studentName = Student.query.filter_by(email=email).first()
+    studentName = Student.query.filter_by(mail=email).first()
+    studentID = studentName.studentNumber
     if studentName == None:
         return "There is no student with this email"
 
     else:
         departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
         facultyName = Faculty.query.filter_by(ID=departmentName.facultyID).first()
-        enrollmentID = Enrollment.query.filter_by(studentID=id).first()
+        enrollmentID = Enrollment.query.filter_by(studentID=studentID).first()
         sectionID = enrollmentID.sectionID
         sectionSS = Section.query.filter_by(ID=sectionID).first()
         sectionTime = sectionSS.time
