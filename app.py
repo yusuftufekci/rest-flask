@@ -7,8 +7,6 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 import random
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
 
 
@@ -19,7 +17,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
 app.secret_key = 'super secret key'
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
-jwt = JWTManager(app)
 cors = CORS(app)
 
 
@@ -170,13 +167,12 @@ def register():
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
     new_user = User(email=email,role=role,  password=generate_password_hash(password, method='sha256'))
-    access_token = create_access_token(identity=data['username'])
-    refresh_token = create_refresh_token(identity=data['username'])
+
     # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
 
-    return "Ok message",access_token,refresh_token
+    return "Ok message"
 
 
 @app.route('/login', methods=['POST'])
@@ -196,11 +192,10 @@ def login_post():
 
         # if the user doesn't exist or password is wrong, reload the page
     role = user.role
-    access_token = create_access_token(identity=data['email'])
-    refresh_token = create_refresh_token(identity=data['email'])
+
     # if the above check passes, then we know the user has the right credentials
 
-    return "giris basarili",role,access_token,refresh_token
+    return "giris basarili",role
 
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
