@@ -170,8 +170,8 @@ def register():
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
     new_user = User(email=email,role=role,  password=generate_password_hash(password, method='sha256'))
-    access_token = create_access_token(identity=data['username'])
-    refresh_token = create_refresh_token(identity=data['username'])
+    access_token = create_access_token(identity=data['email'])
+    refresh_token = create_refresh_token(identity=data['email'])
     # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
@@ -205,8 +205,8 @@ def login_post():
     if not user or not check_password_hash(user.password, password):
         return "giris basarisiz"
 
-    access_token = create_access_token(identity=data['username'])
-    refresh_token = create_refresh_token(identity=data['username'])
+    access_token = create_access_token(identity=data['email'])
+    refresh_token = create_refresh_token(identity=data['email'])
         # if the user doesn't exist or password is wrong, reload the page
     role = user.role
 
