@@ -205,7 +205,7 @@ def login_post():
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
 
-    studentName = Student.query.filter_by(mail=id).first()
+    studentName = Student.query.filter_by(studentNumber=id).first()
     if studentName == None:
         return "There is no student with this id"
 
