@@ -7,7 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 import random
-
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
 
 
@@ -17,7 +18,10 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
 app.secret_key = 'super secret key'
+app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+jwt = JWTManager(app)
 cors = CORS(app)
+
 
 
 
@@ -132,7 +136,6 @@ class Sensors(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode)
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
@@ -140,61 +143,60 @@ class User(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
 
-    studentName = User.query.filter_by(name="yusuf").first()
+    studentName = User.query.filter_by(id="1").first()
 
-    return str(studentName.password)
+    return str(studentName.email)
 
 
 
 
 @app.route('/register', methods=['POST'])
-def signup_post():
+def register():
     data = request.get_json(force=True)
-
-    username = data["username"]
-    password = data["password"]
     email = data["email"]
+    password = data["password"]
     role = data["role"]
-    id = random.randrange(1,600000)
 
-    idUser = User.query.filter_by(id=id).first()
-    if idUser is None:
 
-        user = User.query.filter_by(name=username).first() # if this returns a user, then the email already exists in database
 
-        if user: # if a user is found, we want to redirect back to signup page so user can try again
-            return "Hata mesaji", 400
+    user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
-        # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-        new_user = User(id=id, name=username, email=email,role=role,  password=generate_password_hash(password, method='sha256'))
+    if user: # if a user is found, we want to redirect back to signup page so user can try again
+        return "Hata mesaji", 400
 
-        # add the new user to the database
-        db.session.add(new_user)
-        db.session.commit()
+    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    new_user = User(email=email,role=role,  password=generate_password_hash(password, method='sha256'))
+    access_token = create_access_token(identity=data['username'])
+    refresh_token = create_refresh_token(identity=data['username'])
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
 
-        return "Ok message"
-    else:
-        return signup_post()
+    return "Ok message",access_token,refresh_token
+
 
 @app.route('/login', methods=['POST'])
 def login_post():
 
     data = request.get_json(force=True)
-    username = data["username"]
+    email = data["email"]
     password = data["password"]
 
 
-    user = User.query.filter_by(name=username).first()
+    user = User.query.filter_by(email=email).first()
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if not user or not check_password_hash(user.password, password):
         return "giris basarisiz"
+
+
         # if the user doesn't exist or password is wrong, reload the page
     role = user.role
-
+    access_token = create_access_token(identity=data['email'])
+    refresh_token = create_refresh_token(identity=data['email'])
     # if the above check passes, then we know the user has the right credentials
 
-    return "giris basarili",role
+    return "giris basarili",role,access_token,refresh_token
 
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
@@ -209,6 +211,8 @@ def home(id):
         enrollmentID = Enrollment.query.filter_by(studentID=id).first()
         sectionID = enrollmentID.sectionID
         sectionSS = Section.query.filter_by(ID=sectionID).first()
+        sectionTime = sectionSS.time
+
         instructorSS = Instructor.query.filter_by(ID=sectionSS.instructorID).first()
         instructorName=instructorSS.name
         courseSS = Courses.query.filter_by(ID=sectionSS.courseID).first()
@@ -223,7 +227,44 @@ def home(id):
             'Instructor': instructorName,
             'CourseCode': courseCode,
             'CourseCredit': courseCredit,
-            'CourseName': courseName
+            'CourseName': courseName,
+            'SectionTime': sectionTime
+
+        }]
+        d2 = json.dumps(d)
+
+    return d2
+
+@app.route('/api/users/<email>', methods=['GET', 'POST'])
+def get_lectures(email):
+
+    studentName = Student.query.filter_by(email=email).first()
+    if studentName == None:
+        return "There is no student with this email"
+
+    else:
+        departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
+        facultyName = Faculty.query.filter_by(ID=departmentName.facultyID).first()
+        enrollmentID = Enrollment.query.filter_by(studentID=id).first()
+        sectionID = enrollmentID.sectionID
+        sectionSS = Section.query.filter_by(ID=sectionID).first()
+        sectionTime = sectionSS.time
+        instructorSS = Instructor.query.filter_by(ID=sectionSS.instructorID).first()
+        instructorName=instructorSS.name
+        courseSS = Courses.query.filter_by(ID=sectionSS.courseID).first()
+        courseCode=courseSS.courseCode
+        courseCredit=courseSS.credit
+        courseName=courseSS.name
+
+        d = [{
+            'Department': departmentName.name,
+            'Faculty': facultyName.name,
+            'StudentName': studentName.name,
+            'Instructor': instructorName,
+            'CourseCode': courseCode,
+            'CourseCredit': courseCredit,
+            'CourseName': courseName,
+            'SectionTime': sectionTime
         }]
         d2 = json.dumps(d)
 
