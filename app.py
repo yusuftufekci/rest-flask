@@ -142,16 +142,61 @@ class User(db.Model):
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
+
+
+
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
+    studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
+    studentID = studentName.studentNumber
 
-    studentName = Student.query.filter_by(departmentID="1").all()
+    student = Enrollment.query.filter_by(studentID=studentID).all()
+    sectionID = []
+    for i in range (0,len(student)):
+        sectionID.append(student[i].sectionID)
+
+    courses_ID = []
+    instructor = []
+    sectionTime = []
+
+    courseName = []
+    courseCode = []
+    courseCredit = []
+    section2 = []
+
+    for i in range(0,len(sectionID)):
+        
+        
+        section = Section.query.filter_by(ID=sectionID[i]).first()
+        sectionTime.append(section.time)
+        section2.append(section.section)
+        
+        instructors = Instructor.query.filter_by(ID=section.instructorID).first()
+        instructor.append(instructors.name)
+        
+        coursess = Courses.query.filter_by(ID=section.courseID).first()
+        courseName.append(coursess.name)
+        courseCode.append(coursess.courseCode)
+        courseCredit.append(coursess.credit)
 
 
-    return str(studentName[1].mail)
+
+    ###studentName = Enrollment.query.filter_by(email="tufekciy@mef.edu.tr").first()
+    user = Section.query.filter_by(ID="1").first()
+
+    d = [{
+        'CourseCode': courseCode,
+        'CourseCredit': courseCredit,
+        'CourseName': courseName,
+        'SectionTime': sectionTime,
+        'Instructor': instructor,
+        'section': section2
+    }]
+    d2 = json.dumps(d, ensure_ascii=False)
 
 
+    return d2
 
 
 @app.route('/register', methods=['POST'])
@@ -292,9 +337,59 @@ def get_lectures(email):
             'CourseName': courseName,
             'SectionTime': sectionTime
         }]
-        d2 = json.dumps(d)
+        d2 = json.dumps(d, ensure_ascii=False)
 
     return d2
+
+
+@app.route('/lectures/<email>', methods=['GET', 'POST'])
+def get_lectures1(email):
+    studentName = Student.query.filter_by(mail=email).first()
+    studentID = studentName.studentNumber
+    student = Enrollment.query.filter_by(studentID=studentID).all()
+    sectionID = []
+    for i in range(0, len(student)):
+        sectionID.append(student[i].sectionID)
+
+    courses_ID = []
+    instructor = []
+    sectionTime = []
+
+    courseName = []
+    courseCode = []
+    courseCredit = []
+    section2 = []
+
+    for i in range(0, len(sectionID)):
+        section = Section.query.filter_by(ID=sectionID[i]).first()
+        sectionTime.append(section.time)
+        section2.append(section.section)
+
+        instructors = Instructor.query.filter_by(ID=section.instructorID).first()
+        instructor.append(instructors.name)
+
+        coursess = Courses.query.filter_by(ID=section.courseID).first()
+        courseName.append(coursess.name)
+        courseCode.append(coursess.courseCode)
+        courseCredit.append(coursess.credit)
+    department = Department.query.filter_by(ID=studentName.departmentID).first()
+    departmentName = department.name
+    ###studentName = Enrollment.query.filter_by(email="tufekciy@mef.edu.tr").first()
+
+    d = [{
+        'CourseCode': courseCode,
+        'CourseCredit': courseCredit,
+        'CourseName': courseName,
+        'SectionTime': sectionTime,
+        'Instructor': instructor,
+        'section': section2,
+        'department': departmentName,
+
+    }]
+    d2 = json.dumps(d, ensure_ascii=False)
+
+    return d2
+
 
 if __name__ == '__main__':
     app.run()
