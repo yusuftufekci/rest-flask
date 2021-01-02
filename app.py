@@ -3,9 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 import json
 from flask_cors import CORS, cross_origin
-from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import request
 import random
 import pandas as pd
 
