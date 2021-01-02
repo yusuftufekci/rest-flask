@@ -153,7 +153,7 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
 
-
+'''
 def excel():
     xls = pd.ExcelFile('/Users/yusuftufekci/Desktop/bitirme.xlsx')
     course = pd.read_excel(xls, 'Course')
@@ -237,7 +237,7 @@ def excel():
         db.session.add(new_section)
         db.session.commit()
 
-
+'''
 
 
 
@@ -250,7 +250,7 @@ def welcome():
     studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
     return str(studentName.studentNumber)
 
-@app.route('/deneme2', methods=['GET', 'POST'])
+''''@app.route('/deneme2', methods=['GET', 'POST'])
 
 
 def deneme():
@@ -299,7 +299,7 @@ def deneme():
     excel()
 
     return d2
-
+'''
 
 @app.route('/register', methods=['POST'])
 def register():
