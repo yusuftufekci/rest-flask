@@ -248,11 +248,18 @@ def excel():
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
+    return str(studentName.studentNumber)
+
+@app.route('/deneme2', methods=['GET', 'POST'])
+
+
+def deneme():
+    studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
     studentID = studentName.studentNumber
 
     student = Enrollment.query.filter_by(studentID=studentID).all()
     sectionID = []
-    for i in range (0,len(student)):
+    for i in range(0, len(student)):
         sectionID.append(student[i].sectionID)
 
     courses_ID = []
@@ -264,22 +271,18 @@ def welcome():
     courseCredit = []
     section2 = []
 
-    for i in range(0,len(sectionID)):
-        
-        
+    for i in range(0, len(sectionID)):
         section = Section.query.filter_by(ID=sectionID[i]).first()
         sectionTime.append(section.time)
         section2.append(section.section)
-        
+
         instructors = Instructor.query.filter_by(ID=section.instructorID).first()
         instructor.append(instructors.name)
-        
+
         coursess = Courses.query.filter_by(ID=section.courseID).first()
         courseName.append(coursess.name)
         courseCode.append(coursess.courseCode)
         courseCredit.append(coursess.credit)
-
-
 
     ###studentName = Enrollment.query.filter_by(email="tufekciy@mef.edu.tr").first()
     user = Section.query.filter_by(ID="1").first()
