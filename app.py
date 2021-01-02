@@ -7,6 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 import random
+import pandas as pd
+
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
@@ -33,25 +35,27 @@ class Student(db.Model):
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     enrollments = db.relationship("Enrollment")
     mail = db.Column(db.Unicode)
-    def __init__(self, name, departmentID,mail):
+    def __init__(self, name, departmentID,mail,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = name
         self.departmentID = departmentID
         self.mail = mail
 
 
 class Classroom(db.Model):
-    ClassroomID = db.Column(db.Integer, primary_key=True)
+    classroomID = db.Column(db.Integer, primary_key=True)
     capacity = db.Column(db.Integer)
-    Lab = db.Column(db.Boolean)
-    Location = db.Column(db.Unicode)
+    lab = db.Column(db.Boolean)
+    location = db.Column(db.Unicode)
     name = db.Column(db.Unicode)
     sections = db.relationship('Section', backref='Classroom')
     sensorses = db.relationship('Sensors', backref='Classroom')
 
-    def __init__(self, capacity, Lab, Location, name):
+    def __init__(self, capacity, lab, location, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.capacity = capacity
-        self.Lab = Lab
-        self.Location = Location
+        self.lab = lab
+        self.location = location
         self.name = name
 
 
@@ -63,7 +67,8 @@ class Courses(db.Model):
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     sections = db.relationship('Section', backref='Courses')
 
-    def __init__(self, courseCode, credit, name):
+    def __init__(self, courseCode, credit, name,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.courseCode = courseCode
         self.credit = credit
         self.name = name
@@ -77,7 +82,8 @@ class Department(db.Model):
     courses = db.relationship('Courses', backref='Department')
     students = db.relationship('Student', backref='Department')
 
-    def __init__(self, name, facultyID):
+    def __init__(self, name,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = name
 
 
@@ -96,7 +102,8 @@ class Faculty(db.Model):
     name = db.Column(db.Unicode)
     departments = db.relationship('Department', backref='Faculty')
 
-    def __init__(self, name):
+    def __init__(self, name,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = name
 
 class Instructor(db.Model):
@@ -106,7 +113,8 @@ class Instructor(db.Model):
     sections = db.relationship('Section', backref='Instructor')
     mail = db.Column(db.Unicode)
 
-    def __init__(self, departmentID, name, mail):
+    def __init__(self, departmentID, name, mail,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.departmentID = departmentID
         self.name = name
         self.mail = mail
@@ -117,10 +125,11 @@ class Section(db.Model):
     time = db.Column(db.Unicode)
     instructorID = db.Column(db.Integer, db.ForeignKey("instructor.ID"))
     courseID = db.Column(db.Integer, db.ForeignKey("courses.ID"))
-    classroomID = db.Column(db.Integer, db.ForeignKey("classroom.ClassroomID"))
+    classroomID = db.Column(db.Integer, db.ForeignKey("classroom.classroomID"))
     enrollments = db.relationship("Enrollment", backref="Section")
 
-    def __init__(self, section, time ):
+    def __init__(self, section, time,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.section = section
         self.time = time
 
@@ -130,9 +139,10 @@ class Sensors(db.Model):
     Tempature = db.Column(db.Integer)
     humidity = db.Column(db.Integer)
     date = db.Column(db.DateTime)
-    classroomID = db.Column(db.Integer, db.ForeignKey("classroom.ClassroomID"))
+    classroomID = db.Column(db.Integer, db.ForeignKey("classroom.classroomID"))
 
-    def __init__(self, Tempature, humidity, date):
+    def __init__(self, Tempature, humidity, date,*args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.Tempature = Tempature
         self.humidity = humidity
         self.date = date
@@ -142,6 +152,95 @@ class User(db.Model):
     password = db.Column(db.Unicode)
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
+
+
+def excel():
+    xls = pd.ExcelFile('/Users/yusuftufekci/Desktop/bitirme.xlsx')
+    course = pd.read_excel(xls, 'Course')
+
+
+    instructor = pd.read_excel(xls, 'Instructor')
+
+    student = pd.read_excel(xls, 'Student')
+
+
+    faculty = pd.read_excel(xls, 'Faculty')
+
+
+    department = pd.read_excel(xls, 'Department')
+
+
+    section = pd.read_excel(xls, 'Section')
+
+
+    classroom = pd.read_excel(xls, 'Classroom')
+
+    print(course)
+    print(course.columns.ravel()[1])
+
+    for i in range(len(faculty)):
+        new_faculty = Faculty(name=faculty["Name"][i])
+        db.session.add(new_faculty)
+        db.session.commit()
+
+    for i in range(len(department)):
+
+        faculty2 = Faculty.query.filter_by(name=department["Faculty"][i]).first()
+        print(faculty2.ID)
+
+        new_department = Department(name=department["Name"][i],facultyID=faculty2.ID)
+        db.session.add(new_department)
+        db.session.commit()
+
+    for i in range(len(student)):
+
+        department = Department.query.filter_by(name=student["Department"][i]).first()
+
+
+        new_student = Student(studentNumber=student["Student_Number"][i], name=student["Name"][i],mail=student["mail"][i],departmentID=department.ID)
+        db.session.add(new_student)
+        db.session.commit()
+
+    for i in range(len(instructor)):
+
+        department = Department.query.filter_by(name=instructor["Department"][i]).first()
+
+
+        new_instructor = Instructor(name=instructor["Name"][i], mail=instructor["mail"][i],departmentID=department.ID)
+        db.session.add(new_instructor)
+        db.session.commit()
+
+    for i in range(len(classroom)):
+        new_classroom = Classroom(capacity=classroom["Capacity"][i], lab=classroom["Lab"][i], location=classroom["Location"][i], name=classroom["name"][i])
+        db.session.add(new_classroom)
+        db.session.commit()
+
+    for i in range(len(course)):
+
+        department = Department.query.filter_by(name=course["Department"][i]).first()
+
+
+        new_course = Courses(courseCode=course["Course Code"][i], credit=course["credit"][i], name=course["name"][i], departmentID=department.ID )
+        db.session.add(new_course)
+        db.session.commit()
+
+
+    for i in range(len(section)):
+
+
+        course2 = Courses.query.filter_by(name=section["Course"][i]).first()
+        classroom = Classroom.query.filter_by(name=section["Classroom"][i]).first()
+        instructor = Instructor.query.filter_by(name=section["instructor"][i]).first()
+
+
+        new_section = Section(section=section["Section"][i], time=section["time"][i], courseID=course2.ID, classroomID=classroom.classroomID, instructorID=instructor.ID)
+        db.session.add(new_section)
+        db.session.commit()
+
+
+
+
+
 
 
 
@@ -194,7 +293,7 @@ def welcome():
         'section': section2
     }]
     d2 = json.dumps(d, ensure_ascii=False)
-
+    excel()
 
     return d2
 
@@ -248,7 +347,7 @@ def login_post():
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if not user or not check_password_hash(user.password, password):
-        return "giris basarisiz"
+        return "giris basarisiz", 401
 
     access_token = create_access_token(identity=data['email'])
     refresh_token = create_refresh_token(identity=data['email'])
@@ -305,41 +404,7 @@ def home(id):
 
     return d2
 
-@app.route('/api/user/<email>', methods=['GET', 'POST'])
-def get_lectures(email):
 
-    studentName = Student.query.filter_by(mail=email).first()
-    studentID = studentName.studentNumber
-    if studentName == None:
-        return 400
-
-    else:
-        departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
-        facultyName = Faculty.query.filter_by(ID=departmentName.facultyID).first()
-        enrollmentID = Enrollment.query.filter_by(studentID=studentID).first()
-        sectionID = enrollmentID.sectionID
-        sectionSS = Section.query.filter_by(ID=sectionID).first()
-        sectionTime = sectionSS.time
-        instructorSS = Instructor.query.filter_by(ID=sectionSS.instructorID).first()
-        instructorName=instructorSS.name
-        courseSS = Courses.query.filter_by(ID=sectionSS.courseID).first()
-        courseCode=courseSS.courseCode
-        courseCredit=courseSS.credit
-        courseName=courseSS.name
-
-        d = [{
-            'Department': departmentName.name,
-            'Faculty': facultyName.name,
-            'StudentName': studentName.name,
-            'Instructor': instructorName,
-            'CourseCode': courseCode,
-            'CourseCredit': courseCredit,
-            'CourseName': courseName,
-            'SectionTime': sectionTime
-        }]
-        d2 = json.dumps(d, ensure_ascii=False)
-
-    return d2
 
 
 @app.route('/lectures/<email>', methods=['GET', 'POST'])
