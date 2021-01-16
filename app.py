@@ -154,7 +154,7 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
 
-
+'''
 def excel():
     xls = pd.ExcelFile('/Users/yusuftufekci/Desktop/bitirme.xlsx')
     course = pd.read_excel(xls, 'Course')
@@ -258,7 +258,7 @@ def excel():
         db.session.add(enrollement1)
         db.session.commit()
 
-
+'''
 
 
 
@@ -482,7 +482,7 @@ def get_lectures1(email):
     return d2
 
 
-@app.route('/inst/<email>', methods=['GET', 'POST'])
+@app.route('/instructor/<email>', methods=['GET', 'POST'])
 def get_lectures2(email):
     instructorName = Instructor.query.filter_by(mail=email).first()
     studentID = instructorName.ID
