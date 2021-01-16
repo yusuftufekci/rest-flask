@@ -6,6 +6,7 @@ from flask_cors import CORS, cross_origin
 from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, redirect, url_for, request, flash
+import pandas as pd
 import random
 #import pandas as pd
 
@@ -153,7 +154,7 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
 
-'''
+
 def excel():
     xls = pd.ExcelFile('/Users/yusuftufekci/Desktop/bitirme.xlsx')
     course = pd.read_excel(xls, 'Course')
@@ -174,9 +175,12 @@ def excel():
 
 
     classroom = pd.read_excel(xls, 'Classroom')
+    
+    enrollment = pd.read_excel(xls, 'Enrollment')
 
-    print(course)
-    print(course.columns.ravel()[1])
+    
+    
+
 
     for i in range(len(faculty)):
         new_faculty = Faculty(name=faculty["Name"][i])
@@ -237,7 +241,24 @@ def excel():
         db.session.add(new_section)
         db.session.commit()
 
-'''
+    for i in range(len(enrollment)):
+        course = Courses.query.filter_By(name=enrollment["Course"][i]).first()
+        section_number = enrollment["Section"][i]
+
+        section = Section.query.filter_by(courseID=course.ID).all()
+        for sectionss in section:
+            if sectionss.section==section_number:
+                real_section = sectionss.ID
+
+
+
+        enrollement1 = Enrollment(studentID=enrollment["Student_Number"][i],sectionID=real_section)
+
+
+        db.session.add(enrollement1)
+        db.session.commit()
+
+
 
 
 
@@ -248,6 +269,7 @@ def excel():
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
+    #excel()
     return str(studentName.studentNumber)
 
 ''''@app.route('/deneme2', methods=['GET', 'POST'])
@@ -418,6 +440,7 @@ def get_lectures1(email):
     sectionID = []
     for i in range(0, len(student)):
         sectionID.append(student[i].sectionID)
+    print(sectionID)
 
     courses_ID = []
     instructor = []
@@ -457,6 +480,54 @@ def get_lectures1(email):
     d2 = json.dumps(d, ensure_ascii=False)
 
     return d2
+
+
+@app.route('/inst/<email>', methods=['GET', 'POST'])
+def get_lectures2(email):
+    instructorName = Instructor.query.filter_by(mail=email).first()
+    studentID = instructorName.ID
+    student = Section.query.filter_by(instructorID=studentID).all()
+    sectionID = []
+
+    for i in range(0, len(student)):
+        sectionID.append(student[i].ID)
+    print(sectionID)
+    courses_ID = []
+    instructor = []
+    sectionTime = []
+
+    courseName = []
+    courseCode = []
+    courseCredit = []
+    section2 = []
+
+    for i in range(0, len(sectionID)):
+        section = Section.query.filter_by(ID=sectionID[i]).first()
+        sectionTime.append(section.time)
+        section2.append(section.section)
+
+
+        coursess = Courses.query.filter_by(ID=section.courseID).first()
+        courseName.append(coursess.name)
+        courseCode.append(coursess.courseCode)
+        courseCredit.append(coursess.credit)
+    department = Department.query.filter_by(ID=instructorName.departmentID).first()
+    departmentName = department.name
+    ###studentName = Enrollment.query.filter_by(email="tufekciy@mef.edu.tr").first()
+
+    d = [{
+        'CourseCode': courseCode,
+        'CourseCredit': courseCredit,
+        'CourseName': courseName,
+        'SectionTime': sectionTime,
+        'section': section2,
+        'department': departmentName,
+
+    }]
+    d2 = json.dumps(d, ensure_ascii=False)
+
+    return d2
+
 
 
 if __name__ == '__main__':
