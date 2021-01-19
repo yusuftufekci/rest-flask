@@ -36,11 +36,13 @@ class Student(db.Model):
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     enrollments = db.relationship("Enrollment")
     mail = db.Column(db.Unicode)
-    def __init__(self, name, departmentID,mail,*args, **kwargs):
+    Active_Passive=db.Column(db.Unicode)
+    def __init__(self, name, departmentID,Active_Passive,mail,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = name
         self.departmentID = departmentID
         self.mail = mail
+        self.Active_Passive=Active_Passive
 
 
 class Classroom(db.Model):
@@ -113,12 +115,15 @@ class Instructor(db.Model):
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     sections = db.relationship('Section', backref='Instructor')
     mail = db.Column(db.Unicode)
+    Active_Passive=db.Column(db.Unicode)
 
-    def __init__(self, departmentID, name, mail,*args, **kwargs):
+
+    def __init__(self, departmentID,Active_Passive, name, mail,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.departmentID = departmentID
         self.name = name
         self.mail = mail
+        self.Active_Passive=Active_Passive
 
 class Section(db.Model):
     ID = db.Column(db.Integer, primary_key=True)
@@ -154,111 +159,8 @@ class User(db.Model):
     email = db.Column(db.Unicode)
     role = db.Column(db.Unicode)
 
-'''
-def excel():
-    xls = pd.ExcelFile('/Users/yusuftufekci/Desktop/bitirme.xlsx')
-    course = pd.read_excel(xls, 'Course')
 
 
-    instructor = pd.read_excel(xls, 'Instructor')
-
-    student = pd.read_excel(xls, 'Student')
-
-
-    faculty = pd.read_excel(xls, 'Faculty')
-
-
-    department = pd.read_excel(xls, 'Department')
-
-
-    section = pd.read_excel(xls, 'Section')
-
-
-    classroom = pd.read_excel(xls, 'Classroom')
-    
-    enrollment = pd.read_excel(xls, 'Enrollment')
-
-    
-    
-
-
-    for i in range(len(faculty)):
-        new_faculty = Faculty(name=faculty["Name"][i])
-        db.session.add(new_faculty)
-        db.session.commit()
-
-    for i in range(len(department)):
-
-        faculty2 = Faculty.query.filter_by(name=department["Faculty"][i]).first()
-        print(faculty2.ID)
-
-        new_department = Department(name=department["Name"][i],facultyID=faculty2.ID)
-        db.session.add(new_department)
-        db.session.commit()
-
-    for i in range(len(student)):
-
-        department = Department.query.filter_by(name=student["Department"][i]).first()
-
-
-        new_student = Student(studentNumber=student["Student_Number"][i], name=student["Name"][i],mail=student["mail"][i],departmentID=department.ID)
-        db.session.add(new_student)
-        db.session.commit()
-
-    for i in range(len(instructor)):
-
-        department = Department.query.filter_by(name=instructor["Department"][i]).first()
-
-
-        new_instructor = Instructor(name=instructor["Name"][i], mail=instructor["mail"][i],departmentID=department.ID)
-        db.session.add(new_instructor)
-        db.session.commit()
-
-    for i in range(len(classroom)):
-        new_classroom = Classroom(capacity=classroom["Capacity"][i], lab=classroom["Lab"][i], location=classroom["Location"][i], name=classroom["name"][i])
-        db.session.add(new_classroom)
-        db.session.commit()
-
-    for i in range(len(course)):
-
-        department = Department.query.filter_by(name=course["Department"][i]).first()
-
-
-        new_course = Courses(courseCode=course["Course Code"][i], credit=course["credit"][i], name=course["name"][i], departmentID=department.ID )
-        db.session.add(new_course)
-        db.session.commit()
-
-
-    for i in range(len(section)):
-
-
-        course2 = Courses.query.filter_by(name=section["Course"][i]).first()
-        classroom = Classroom.query.filter_by(name=section["Classroom"][i]).first()
-        instructor = Instructor.query.filter_by(name=section["instructor"][i]).first()
-
-
-        new_section = Section(section=section["Section"][i], time=section["time"][i], courseID=course2.ID, classroomID=classroom.classroomID, instructorID=instructor.ID)
-        db.session.add(new_section)
-        db.session.commit()
-
-    for i in range(len(enrollment)):
-        course = Courses.query.filter_By(name=enrollment["Course"][i]).first()
-        section_number = enrollment["Section"][i]
-
-        section = Section.query.filter_by(courseID=course.ID).all()
-        for sectionss in section:
-            if sectionss.section==section_number:
-                real_section = sectionss.ID
-
-
-
-        enrollement1 = Enrollment(studentID=enrollment["Student_Number"][i],sectionID=real_section)
-
-
-        db.session.add(enrollement1)
-        db.session.commit()
-
-'''
 
 
 
@@ -269,7 +171,7 @@ def excel():
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
-    #excel()
+
     return str(studentName.studentNumber)
 
 ''''@app.route('/deneme2', methods=['GET', 'POST'])
@@ -480,6 +382,103 @@ def get_lectures1(email):
     d2 = json.dumps(d, ensure_ascii=False)
 
     return d2
+
+@app.route('/upload', methods=['GET', 'POST'])
+def get_excel():
+    if request.method == "POST":
+        f = request.files['file']
+        xls = pd.ExcelFile(f)
+        course = pd.read_excel(xls, 'Course')
+
+        instructor = pd.read_excel(xls, 'Instructor')
+
+        student = pd.read_excel(xls, 'Student')
+
+        faculty = pd.read_excel(xls, 'Faculty')
+
+        department = pd.read_excel(xls, 'Department')
+
+        section = pd.read_excel(xls, 'Section')
+
+        classroom = pd.read_excel(xls, 'Classroom')
+
+        enrollment = pd.read_excel(xls, 'Enrollment')
+
+        for i in range(len(faculty)):
+            new_faculty = Faculty(name=faculty["Name"][i])
+            db.session.add(new_faculty)
+            db.session.commit()
+
+        for i in range(len(department)):
+            faculty2 = Faculty.query.filter_by(name=department["Faculty"][i]).first()
+            print(faculty2.ID)
+
+            new_department = Department(name=department["Name"][i], facultyID=faculty2.ID)
+            db.session.add(new_department)
+            db.session.commit()
+
+        for i in range(len(student)):
+            department = Department.query.filter_by(name=student["Department"][i]).first()
+
+            new_student = Student(studentNumber=student["Student_Number"][i], name=student["Name"][i],
+                                  mail=student["mail"][i], departmentID=department.ID,
+                                  Active_Passive=student["Active_Passive"][i])
+            db.session.add(new_student)
+            db.session.commit()
+
+        for i in range(len(instructor)):
+            department = Department.query.filter_by(name=instructor["Department"][i]).first()
+
+            new_instructor = Instructor(name=instructor["Name"][i], mail=instructor["mail"][i],
+                                        departmentID=department.ID, Active_Passive=instructor["Active_Passive"][i])
+            db.session.add(new_instructor)
+            db.session.commit()
+
+        for i in range(len(classroom)):
+            new_classroom = Classroom(capacity=classroom["Capacity"][i], lab=classroom["Lab"][i],
+                                      location=classroom["Location"][i], name=classroom["name"][i])
+            db.session.add(new_classroom)
+            db.session.commit()
+
+        for i in range(len(course)):
+            department = Department.query.filter_by(name=course["Department"][i]).first()
+
+            new_course = Courses(courseCode=course["Course Code"][i], credit=course["credit"][i],
+                                 name=course["name"][i], departmentID=department.ID)
+            db.session.add(new_course)
+            db.session.commit()
+
+        for i in range(len(section)):
+            course2 = Courses.query.filter_by(name=section["Course"][i]).first()
+            classroom = Classroom.query.filter_by(name=section["Classroom"][i]).first()
+            instructor = Instructor.query.filter_by(name=section["instructor"][i]).first()
+
+            new_section = Section(section=section["Section"][i], time=section["time"][i], courseID=course2.ID,
+                                  classroomID=classroom.classroomID, instructorID=instructor.ID)
+            db.session.add(new_section)
+            db.session.commit()
+
+        for i in range(len(enrollment)):
+
+            course = Courses.query.filter_by(name=enrollment["Course"][i]).first()
+            section_number = enrollment["Section"][i]
+
+            section = Section.query.filter_by(courseID=course.ID).all()
+            for sectionss in section:
+                if sectionss.section == section_number:
+                    real_section = sectionss.ID
+                else:
+                    real_section = None
+
+            if real_section is not None:
+                enrollement1 = Enrollment(studentID=enrollment["Student_Number"][i], sectionID=real_section)
+
+            db.session.add(enrollement1)
+            db.session.commit()
+    return "a"
+
+
+
 
 
 @app.route('/instructor/<email>', methods=['GET', 'POST'])
