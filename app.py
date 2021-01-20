@@ -480,6 +480,13 @@ def get_excel():
         return "401"
 
 
+@app.route('/upload/file', methods=['GET', 'POST'])
+def get_excel2():
+    if request.method == "POST":
+        if request.files is not None:
+            return "200"
+        else:
+            return "400"
 
 
 @app.route('/instructor/<email>', methods=['GET', 'POST'])
