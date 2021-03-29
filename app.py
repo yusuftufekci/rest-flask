@@ -1,11 +1,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask import request, jsonify
 import json
 from flask_cors import CORS, cross_origin
-from flask import Blueprint, render_template, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import request
 import pandas as pd
 import random
 #import pandas as pd
@@ -18,7 +16,7 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.121.66.9/lecture_schedule1'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.68.150.246/lecture_schedule1'
 app.secret_key = 'super secret key'
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 jwt = JWTManager(app)
@@ -160,70 +158,14 @@ class User(db.Model):
     role = db.Column(db.Unicode)
 
 
-
-
-
-
-
-
-
 @cross_origin()
 @app.route('/', methods=['GET', 'POST'])
+##Welcome Page
 def welcome():
     studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
 
     return str(studentName.studentNumber)
 
-''''@app.route('/deneme2', methods=['GET', 'POST'])
-
-
-def deneme():
-    studentName = Student.query.filter_by(mail="tufekciy@mef.edu.tr").first()
-    studentID = studentName.studentNumber
-
-    student = Enrollment.query.filter_by(studentID=studentID).all()
-    sectionID = []
-    for i in range(0, len(student)):
-        sectionID.append(student[i].sectionID)
-
-    courses_ID = []
-    instructor = []
-    sectionTime = []
-
-    courseName = []
-    courseCode = []
-    courseCredit = []
-    section2 = []
-
-    for i in range(0, len(sectionID)):
-        section = Section.query.filter_by(ID=sectionID[i]).first()
-        sectionTime.append(section.time)
-        section2.append(section.section)
-
-        instructors = Instructor.query.filter_by(ID=section.instructorID).first()
-        instructor.append(instructors.name)
-
-        coursess = Courses.query.filter_by(ID=section.courseID).first()
-        courseName.append(coursess.name)
-        courseCode.append(coursess.courseCode)
-        courseCredit.append(coursess.credit)
-
-    ###studentName = Enrollment.query.filter_by(email="tufekciy@mef.edu.tr").first()
-    user = Section.query.filter_by(ID="1").first()
-
-    d = [{
-        'CourseCode': courseCode,
-        'CourseCredit': courseCredit,
-        'CourseName': courseName,
-        'SectionTime': sectionTime,
-        'Instructor': instructor,
-        'section': section2
-    }]
-    d2 = json.dumps(d, ensure_ascii=False)
-    excel()
-
-    return d2
-'''
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -297,25 +239,25 @@ def login_post():
 @app.route('/api/users/<id>', methods=['GET', 'POST'])
 def home(id):
 
-    studentName = Student.query.filter_by(studentNumber=id).first()
+    studentName = Student.query.filter_by(studentNumber=id).first()   ##Eğer verilen öğrenci yoksa 400 dönüyor
     if studentName == None:
         return 400
 
     else:
-        departmentName = Department.query.filter_by(ID=studentName.departmentID).first()
-        facultyName = Faculty.query.filter_by(ID=departmentName.facultyID).first()
-        enrollmentID = Enrollment.query.filter_by(studentID=id).first()
-        sectionID = enrollmentID.sectionID
-        sectionSS = Section.query.filter_by(ID=sectionID).first()
-        sectionTime = sectionSS.time
+        departmentName = Department.query.filter_by(ID=studentName.departmentID).first() # Verilen öğrenci numarasından departman
+        facultyName = Faculty.query.filter_by(ID=departmentName.facultyID).first()  # Departmandan fakülteyi buluyoruz
+        enrollmentID = Enrollment.query.filter_by(studentID=id).first()  ## verilen öğrenci numarasından enrollemntları buluyor.
+        sectionID = enrollmentID.sectionID   ##Enrolmentlardan section ıdleri çekiyoruz
+        sectionSS = Section.query.filter_by(ID=sectionID).first()  ## setion idlerden section bilgilerine ulaşıyoruz
+        sectionTime = sectionSS.time  ## section zamanı
 
-        instructorSS = Instructor.query.filter_by(ID=sectionSS.instructorID).first()
-        instructorName=instructorSS.name
-        courseSS = Courses.query.filter_by(ID=sectionSS.courseID).first()
-        courseCode=courseSS.courseCode
+        instructorSS = Instructor.query.filter_by(ID=sectionSS.instructorID).first() # seçilen sectionun instructorı
+        instructorName=instructorSS.name  ##instructor id'den istructor name
+        courseSS = Courses.query.filter_by(ID=sectionSS.courseID).first() ## Course idyi sectiondan buluyoruz
+        courseCode=courseSS.courseCode  ##Course id'yi bulduktan sonra o id'den course hakkındahi herşeye ulaşıyoruz
         courseCredit=courseSS.credit
         courseName=courseSS.name
-
+        ## En sonunda İstenilen tüm değerler
         d = [{
             'Department': departmentName.name,
             'Faculty': facultyName.name,
@@ -335,7 +277,7 @@ def home(id):
 
 
 @app.route('/lectures/<email>', methods=['GET', 'POST'])
-def get_lectures1(email):
+def get_lectures1(email):  ##Mailden öğrenci ders programı için
     studentName = Student.query.filter_by(mail=email).first()
     studentID = studentName.studentNumber
     student = Enrollment.query.filter_by(studentID=studentID).all()
@@ -490,7 +432,7 @@ def get_excel2():
 
 
 @app.route('/instructor/<email>', methods=['GET', 'POST'])
-def get_lectures2(email):
+def get_lectures2(email):  ##instructor ders programı için
     instructorName = Instructor.query.filter_by(mail=email).first()
     studentID = instructorName.ID
     student = Section.query.filter_by(instructorID=studentID).all()
