@@ -140,14 +140,14 @@ class Section(db.Model):
 
 class Sensors(db.Model):
     ID = db.Column(db.Integer, primary_key=True)
-    Tempature = db.Column(db.Integer)
+    tempature = db.Column(db.Integer)
     humidity = db.Column(db.Integer)
     date = db.Column(db.DateTime)
     classroomID = db.Column(db.Integer, db.ForeignKey("classroom.classroomID"))
 
-    def __init__(self, Tempature, humidity, date,*args, **kwargs):
+    def __init__(self, tempature, humidity, date,*args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.Tempature = Tempature
+        self.tempature = tempature
         self.humidity = humidity
         self.date = date
 
