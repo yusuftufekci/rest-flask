@@ -167,6 +167,27 @@ def welcome():
     return str(studentName.studentNumber)
 
 
+@app.route('/api/classrooms/<id>', methods=['GET'])
+def get_sensor_info(id):
+
+    classroom = Classroom.query.filter_by(classroomID=id).first()
+
+    if classroom == None:
+        return 400
+
+    else:
+        Sensor = Sensors.query.filter_by(classroomID=classroom.classroomID).first()
+        print(Sensor)
+        print(classroom.classroomID)
+        d = [{
+            'Classroom ID' : classroom.classroomID,
+            'Temperature' : Sensor.tempature,
+            'Humidity' : Sensor.humidity,
+        }]
+
+        d2 = json.dumps(d)
+    return d2
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json(force=True)
@@ -274,25 +295,7 @@ def home(id):
     return d2
 
 
-@app.route('/api/classrooms/<id>', methods=['GET'])
-def get_sensor_info(ID):
 
-    classroom = Classroom.query.filter_by(classroomID=ID).first()
-
-    if classroom == None:
-        return 400
-
-    else:
-        Sensor = Sensors.query.filter_by(classroomID=classroom.classroomID).first()
-
-        d = [{
-            'Classroom ID' : classroom.classroomID,
-            'Temperature' : Sensor.Tempature,
-            'Humidity' : Sensor.Humidity,
-        }]
-
-        d2 = json.dumps(d)
-    return d2
 
 
 
