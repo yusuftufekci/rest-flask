@@ -62,6 +62,18 @@ class Classroom(db.Model):
         self.name = name
 
 
+class People_count(db.Model):
+    ID = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Unicode)
+    number_of_people = db.Column(db.Integer)
+
+
+    def __init__(self, date, number_of_people, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.date = date
+        self.number_of_people = number_of_people
+
+
 class Courses(db.Model):
     ID = db.Column(db.Integer, primary_key=True)
     courseCode = db.Column(db.Unicode)
