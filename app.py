@@ -16,7 +16,9 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.68.150.246/lecture_schedule1'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.68.250.214/lecture_schedule1'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.68.150.246/lecture_schedule1'
+
 app.secret_key = 'super secret key'
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 jwt = JWTManager(app)
