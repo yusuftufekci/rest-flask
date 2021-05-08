@@ -5,8 +5,8 @@ from flask_cors import CORS, cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request
 import pandas as pd
-import random
-#import pandas as pd
+
+from sqlalchemy import text
 
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
@@ -62,16 +62,6 @@ class Classroom(db.Model):
         self.name = name
 
 
-class People_count(db.Model):
-    ID = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Unicode)
-    number_of_people = db.Column(db.Integer)
-
-
-    def __init__(self, date, number_of_people, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.date = date
-        self.number_of_people = number_of_people
 
 
 class Courses(db.Model):
@@ -164,6 +154,17 @@ class Sensors(db.Model):
         self.tempature = tempature
         self.humidity = humidity
         self.date = date
+class People_count(db.Model):
+    ID = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Unicode)
+    number_of_people = db.Column(db.Integer)
+    camera = db.Column(db.Unicode)
+
+    def __init__(self, date, number_of_people, camera,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.date = date
+        self.number_of_people = number_of_people
+        self.camera = camera
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -180,6 +181,20 @@ def welcome():
 
     return str(studentName.studentNumber)
 
+
+@app.route('/people_count', methods=['GET', 'POST'])
+##Welcome Page
+def get_people_count():
+    number_of_people2 = People_count.query.order_by(text('-id')).first()
+    d = [{
+        'Date': number_of_people2.date,
+        'Number_of_people': number_of_people2.number_of_people,
+        'camera': number_of_people2.camera,
+
+    }]
+    d2 = json.dumps(d)
+
+    return d2
 
 @app.route('/api/classrooms/<id>', methods=['GET'])
 def get_sensor_info(id):
