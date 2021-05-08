@@ -189,12 +189,33 @@ def get_people_count():
     d = [{
         'Date': number_of_people2.date,
         'Number_of_people': number_of_people2.number_of_people,
-        'camera': number_of_people2.camera,
+        'Camera': number_of_people2.camera,
 
     }]
     d2 = json.dumps(d)
 
     return d2
+@app.route('/people_count/<camera_name>', methods=['GET', 'POST'])
+##Welcome Page
+def get_people_count_with_camera(camera_name):
+    people_count_camera = People_count.query.filter_by(camera=camera_name).all()
+
+    if people_count_camera == None:
+        return 400
+    else:
+        people_count_camera_last = people_count_camera[-1]
+
+        d = [{
+            'Date': people_count_camera_last.date,
+            'Number_of_people': people_count_camera_last.number_of_people,
+            'Camera': people_count_camera_last.camera,
+
+        }]
+        d2 = json.dumps(d)
+
+        return d2
+
+
 
 @app.route('/api/classrooms/<id>', methods=['GET'])
 def get_sensor_info(id):
