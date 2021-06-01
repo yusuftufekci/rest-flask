@@ -233,6 +233,7 @@ def get_sensor_info(id):
             'Classroom ID' : classroom.classroomID,
             'Temperature' : Sensor.tempature,
             'Humidity' : Sensor.humidity,
+            'PeopleClass' : 20,
         }]
 
         d2 = json.dumps(d)
