@@ -13,7 +13,6 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 
 
 ##sonuççç
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:karadeniz@34.68.250.214/lecture_schedule1'
@@ -29,6 +28,7 @@ cors = CORS(app)
 
 
 db = SQLAlchemy(app)
+
 
 class Student(db.Model):
     studentNumber = db.Column(db.Integer, primary_key=True)
@@ -69,14 +69,16 @@ class Courses(db.Model):
     courseCode = db.Column(db.Unicode)
     credit = db.Column(db.Integer)
     name = db.Column(db.Unicode)
+    people_number = db.Column(db.Integer)
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     sections = db.relationship('Section', backref='Courses')
 
-    def __init__(self, courseCode, credit, name,*args, **kwargs):
+    def __init__(self, courseCode, credit, name,people_number,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.courseCode = courseCode
         self.credit = credit
         self.name = name
+        self.people_number = people_number
 
 
 class Department(db.Model):
