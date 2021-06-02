@@ -229,12 +229,14 @@ def get_sensor_info(id):
 
     else:
         Sensor = Sensors.query.filter_by(classroomID=classroom.classroomID).first()
+        PeopleClass=20
         print(Sensor)
         print(classroom.classroomID)
         d = [{
             'Classroom ID' : classroom.classroomID,
             'Temperature' : Sensor.tempature,
             'Humidity' : Sensor.humidity,
+            'PeopleClass' : PeopleClass,
         }]
 
         d2 = json.dumps(d)
