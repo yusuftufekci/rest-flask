@@ -9,7 +9,7 @@ import pandas as pd
 from sqlalchemy import text
 
 from flask_jwt_extended import JWTManager
-from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
+from flask_jwt_extended import (create_access_token, create_refresh_token)
 
 
 ##sonuççç
@@ -51,15 +51,19 @@ class Classroom(db.Model):
     lab = db.Column(db.Boolean)
     location = db.Column(db.Unicode)
     name = db.Column(db.Unicode)
+    people_number = db.Column(db.Integer)
+
     sections = db.relationship('Section', backref='Classroom')
     sensorses = db.relationship('Sensors', backref='Classroom')
 
-    def __init__(self, capacity, lab, location, name, *args, **kwargs):
+    def __init__(self, capacity, lab, location,people_number, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.capacity = capacity
         self.lab = lab
         self.location = location
         self.name = name
+        self.people_number = people_number
+
 
 
 
@@ -69,16 +73,14 @@ class Courses(db.Model):
     courseCode = db.Column(db.Unicode)
     credit = db.Column(db.Integer)
     name = db.Column(db.Unicode)
-    people_number = db.Column(db.Integer)
     departmentID = db.Column(db.Integer, db.ForeignKey("department.ID"))
     sections = db.relationship('Section', backref='Courses')
 
-    def __init__(self, courseCode, credit, name,people_number,*args, **kwargs):
+    def __init__(self, courseCode, credit, name,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.courseCode = courseCode
         self.credit = credit
         self.name = name
-        self.people_number = people_number
 
 
 class Department(db.Model):
@@ -455,7 +457,8 @@ def get_excel():
 
         for i in range(len(classroom)):
             new_classroom = Classroom(capacity=classroom["Capacity"][i], lab=classroom["Lab"][i],
-                                      location=classroom["Location"][i], name=classroom["name"][i])
+                                      location=classroom["Location"][i], name=classroom["name"][i],
+                                      people_number=classroom["people_number"][i])
             db.session.add(new_classroom)
             db.session.commit()
 
