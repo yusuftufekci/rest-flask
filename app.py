@@ -44,7 +44,7 @@ class Student(db.Model):
         self.mail = mail
         self.Active_Passive=Active_Passive
 
-
+#k
 class Classroom(db.Model):
     classroomID = db.Column(db.Integer, primary_key=True)
     capacity = db.Column(db.Integer)
